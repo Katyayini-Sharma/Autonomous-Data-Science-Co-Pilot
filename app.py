@@ -747,16 +747,23 @@ if "result_history" in st.session_state:
                 for i, path in enumerate(result.chart_paths):
                     with cols[i % len(cols)]:
                         st.markdown('<div class="chart-frame crop-card">', unsafe_allow_html=True)
-                        st.image(path, width=320)
+                        st.image(path, use_container_width=True)
                         st.markdown(
                             '<div class="annotation" style="font-size:0.7rem; text-align:center; margin-top:5px;">EXHIBIT ' + chr(
                                 65 + i) + ' &middot; PLOT OUTPUT</div>', unsafe_allow_html=True)
                         st.markdown('</div>', unsafe_allow_html=True)
 
+            # st.markdown(
+            #     '<div class="case-log-heading" style="margin-top: 10px;">Analysis Output</div>',
+            #     unsafe_allow_html=True)
+            #      render_findings(result.insights)
+
+            heading_text = "Analysis Output" if label == "Initial analysis" else "Follow-Up Findings"
             st.markdown(
-                '<div class="case-log-heading" style="margin-top: 10px;">Analysis Output</div>',
+                f'<div class="case-log-heading" style="margin-top: 10px;">{heading_text}</div>',
                 unsafe_allow_html=True)
             render_findings(result.insights)
+
 
             with st.expander(f"Schema profile ({label})"):
                 schema_step = next((s for s in result.steps if s.tool_name == "get_dataframe_schema"), None)
