@@ -25,7 +25,18 @@ def load_dataframe(file_path: str = None, file_bytes: bytes = None, filename: st
     source = file_path if file_path is not None else io.BytesIO(file_bytes)
 
     if ext == ".csv":
-        df = pd.read_csv(source)
+        try:
+            df = pd.read_csv(source)
+        except UnicodeDecodeError:
+            # Some CSVs (often older exports from Excel) are saved in
+            # latin-1/cp1252 rather than UTF-8. Retry with a fallback
+            # encoding instead of failing outright -- latin-1 can decode
+            # any byte sequence, so this never raises the same error again.
+            if file_path is not None:
+                df = pd.read_csv(file_path, encoding="latin-1")
+            else:
+                source.seek(0)  # rewind the in-memory buffer to the start
+                df = pd.read_csv(source, encoding="latin-1")
     elif ext in (".xlsx", ".xls"):
         df = pd.read_excel(source)
     elif ext == ".json":
