@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+outputs/*.png
+outputs/*.jpg
+!outputs/.gitkeep
+.streamlit/secrets.toml
+.vectorstore_cache/
+*.faiss
+*.pkl
+.DS_Store
+.pytest_cache/
+.idea/
