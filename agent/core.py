@@ -99,7 +99,7 @@ def run_copilot(
     # is stochastic -- retrying the same request often succeeds -- so we
     # retry a couple of times before surfacing a real failure to the user.
     last_error = None
-    for attempt in range(5):
+    for attempt in range(2):
         try:
             result = agent.invoke(
                 {"messages": [{"role": "user", "content": user_request}]},
