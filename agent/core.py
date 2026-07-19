@@ -23,6 +23,9 @@ from agent.data_loader import basic_clean
 from agent.prompts import SYSTEM_PROMPT
 from agent.tools import make_tools
 
+import time
+import re
+
 
 @dataclass
 class ToolStep:
@@ -99,7 +102,7 @@ def run_copilot(
     # is stochastic -- retrying the same request often succeeds -- so we
     # retry a couple of times before surfacing a real failure to the user.
     last_error = None
-    for attempt in range(2):
+    for attempt in range(3):
         try:
             result = agent.invoke(
                 {"messages": [{"role": "user", "content": user_request}]},
@@ -108,13 +111,20 @@ def run_copilot(
             break
         except Exception as e:
             last_error = e
-            if "tool_use_failed" not in str(e) and "Failed to call a function" not in str(e):
-                return CopilotResult(success=False, cleaning_log=cleaning_log, error=str(e))
+            err_str = str(e)
+            if "tool_use_failed" in err_str or "Failed to call a function" in err_str:
+                continue  # Groq malformed tool call -- retry immediately
+            elif "RESOURCE_EXHAUSTED" in err_str or "429" in err_str:
+                match = re.search(r"retry in ([\d.]+)s|retryDelay.*?'(\d+)s'", err_str)
+                wait_s = float(match.group(1) or match.group(2)) + 2 if match else 40
+                time.sleep(wait_s)  # sleep through Gemini's per-minute cooldown, then retry
+                continue
+            else:
+                return CopilotResult(success=False, cleaning_log=cleaning_log, error=err_str)
     else:
         return CopilotResult(
             success=False, cleaning_log=cleaning_log,
-            error=f"The model repeatedly failed to format a tool call correctly. "
-                  f"Last error: {last_error}",
+            error=f"Repeated failures. Last error: {last_error}",
         )
 
 
