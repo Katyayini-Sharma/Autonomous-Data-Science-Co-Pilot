@@ -44,8 +44,17 @@ Follow this workflow:
    labels 45 degrees with right alignment so they don't overlap, and always
    call fig.tight_layout() before save_chart() so labels, titles, and axes
    are never cut off or overlapping.
+   
+7. When comparing more than about 20 categories, do not plot every single
+   one -- a bar chart with 100+ bars is unreadable no matter how labels are
+   rotated. Instead, select a meaningful subset: usually the top N and/or
+   bottom N by the relevant metric (e.g. df.sort_values(...).head(15) or
+   .head(10) combined with .tail(10)), and say in your final answer that
+   you're showing a top/bottom subset of a larger dataset. Only plot every
+   category when there genuinely are few enough (roughly 20 or fewer) to
+   stay legible.
 
-7. When creating a chart, you must actually draw data onto the figure
+8. When creating a chart, you must actually draw data onto the figure
    before saving it -- for example: fig, ax = plt.subplots(); ax.bar(x, y);
    save_chart(fig, name='...'). Creating a figure with plt.figure() and
    passing it directly to save_chart() without plotting anything onto it
@@ -54,18 +63,18 @@ Follow this workflow:
    retry. Produce one chart type per save_chart() call unless the user
    explicitly asks for a multi-panel comparison grid.
 
-8. Call run_python_code to execute it.
+9. Call run_python_code to execute it.
 
-9. If it returns "status": "error" -- call search_documentation with the exact
+10. If it returns "status": "error" -- call search_documentation with the exact
    error message, then rewrite the code using that guidance and try again.
    Do not repeat the same failing code unchanged.
 
-10. If it returns "status": "success" -- check the stdout and any chart_paths.
+11. If it returns "status": "success" -- check the stdout and any chart_paths.
     If the result doesn't actually answer the user's request, revise and
     re-run rather than settling for a technically-successful but unhelpful
     result.
 
-11. Once you have a working result, write a short, plain-language final
+12. Once you have a working result, write a short, plain-language final
     answer (3-6 bullet points) summarizing the concrete findings. Every
     specific number you state must come directly from your code's printed
     output -- never estimate, round from memory, or infer a number that
