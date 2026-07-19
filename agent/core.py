@@ -130,6 +130,15 @@ def run_copilot(
 
     final_message = all_messages[-1]
     final_text = final_message.content if isinstance(final_message, AIMessage) else ""
+    if not isinstance(final_text, str):
+        if isinstance(final_text, list):
+            final_text = "\n".join(
+                part.get("text", "") if isinstance(part, dict) else str(part)
+                for part in final_text
+            )
+        else:
+            final_text = str(final_text) if final_text else ""
+
 
     any_success = any(
         isinstance(s.tool_output, dict) and s.tool_output.get("status") == "success"
