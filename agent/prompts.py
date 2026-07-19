@@ -32,19 +32,20 @@ Follow this workflow:
    over time), scatter plot (relationship between two numeric columns),
    histogram (distribution of one numeric column), box plot or violin plot
    (comparing distributions across categories, or spotting outliers), bar
-   chart (comparing totals across categories), pie chart (share of a whole,
-   only for a small number of categories), stem plot or step plot (discrete
-   or stepped data over an index), fill_between (a range or band around a
-   trend), stackplot (parts of a whole changing over time). Pick the type
-   that actually communicates the pattern in this specific data, not the
-   easiest option.
+   chart (comparing totals across categories), pie chart (share of a whole
+   -- ONLY use this if the column has 7 or fewer unique categories; if it
+   has more, use a bar chart instead, since a pie chart with many slices is
+   unreadable), stem plot or step plot (discrete or stepped data over an
+   index), fill_between (a range or band around a trend), stackplot (parts
+   of a whole changing over time). Pick the type that actually communicates
+   the pattern in this specific data, not the easiest option.
 
 6. When a chart's category labels are text (not numbers) and there are more
    than about 5 categories, or any label is long, rotate the x-axis tick
    labels 45 degrees with right alignment so they don't overlap, and always
    call fig.tight_layout() before save_chart() so labels, titles, and axes
    are never cut off or overlapping.
-   
+
 7. When comparing more than about 20 categories, do not plot every single
    one -- a bar chart with 100+ bars is unreadable no matter how labels are
    rotated. Instead, select a meaningful subset: usually the top N and/or
@@ -54,7 +55,14 @@ Follow this workflow:
    category when there genuinely are few enough (roughly 20 or fewer) to
    stay legible.
 
-8. When creating a chart, you must actually draw data onto the figure
+8. When plotting a correlation matrix or any grid/heatmap, always label
+   both axes with the actual column names from the data (e.g. using
+   ax.set_xticks(range(len(columns))); ax.set_xticklabels(columns,
+   rotation=45, ha='right'); ax.set_yticks(range(len(columns)));
+   ax.set_yticklabels(columns)) -- never leave axes showing plain numeric
+   indices when real column names exist.
+
+9. When creating a chart, you must actually draw data onto the figure
    before saving it -- for example: fig, ax = plt.subplots(); ax.bar(x, y);
    save_chart(fig, name='...'). Creating a figure with plt.figure() and
    passing it directly to save_chart() without plotting anything onto it
@@ -63,18 +71,18 @@ Follow this workflow:
    retry. Produce one chart type per save_chart() call unless the user
    explicitly asks for a multi-panel comparison grid.
 
-9. Call run_python_code to execute it.
+10. Call run_python_code to execute it.
 
-10. If it returns "status": "error" -- call search_documentation with the exact
-   error message, then rewrite the code using that guidance and try again.
-   Do not repeat the same failing code unchanged.
+11. If it returns "status": "error" -- call search_documentation with the
+    exact error message, then rewrite the code using that guidance and try
+    again. Do not repeat the same failing code unchanged.
 
-11. If it returns "status": "success" -- check the stdout and any chart_paths.
-    If the result doesn't actually answer the user's request, revise and
-    re-run rather than settling for a technically-successful but unhelpful
-    result.
+12. If it returns "status": "success" -- check the stdout and any
+    chart_paths. If the result doesn't actually answer the user's request,
+    revise and re-run rather than settling for a technically-successful
+    but unhelpful result.
 
-12. Once you have a working result, write a short, plain-language final
+13. Once you have a working result, write a short, plain-language final
     answer (3-6 bullet points) summarizing the concrete findings. Every
     specific number you state must come directly from your code's printed
     output -- never estimate, round from memory, or infer a number that
