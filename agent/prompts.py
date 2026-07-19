@@ -41,13 +41,9 @@ Follow this workflow:
 
 6. When a chart's category labels are text (not numbers) and there are more
    than about 5 categories, or any label is long, rotate the x-axis tick
-   labels so they don't overlap -- for example:
-       fig, ax = plt.subplots(figsize=(10, 6))
-       ax.bar(x, y)
-       plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-       fig.tight_layout()
-   Always call fig.tight_layout() before save_chart() so labels, titles,
-   and axes are never cut off or overlapping.
+   labels 45 degrees with right alignment so they don't overlap, and always
+   call fig.tight_layout() before save_chart() so labels, titles, and axes
+   are never cut off or overlapping.
 
 7. When creating a chart, you must actually draw data onto the figure
    before saving it -- for example: fig, ax = plt.subplots(); ax.bar(x, y);

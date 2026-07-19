@@ -88,19 +88,36 @@ def run_copilot(
     if checkpointer is not None:
         agent_kwargs["checkpointer"] = checkpointer
 
-    try:
-        agent = create_agent(**agent_kwargs)
-        invoke_config = {"recursion_limit": max_steps * 2}
-        if checkpointer is not None:
-            invoke_config["configurable"] = {"thread_id": thread_id}
+    agent = create_agent(**agent_kwargs)
+    invoke_config = {"recursion_limit": max_steps * 2}
+    if checkpointer is not None:
+        invoke_config["configurable"] = {"thread_id": thread_id}
 
-        result = agent.invoke(
-            {"messages": [{"role": "user", "content": user_request}]},
-            config=invoke_config,
+    # llama-3.3-70b-versatile on Groq occasionally emits its tool call in a
+    # malformed textual format ("<function=...>") instead of a proper tool
+    # call, which Groq's API rejects with a 400 tool_use_failed error. This
+    # is stochastic -- retrying the same request often succeeds -- so we
+    # retry a couple of times before surfacing a real failure to the user.
+    last_error = None
+    for attempt in range(3):
+        try:
+            result = agent.invoke(
+                {"messages": [{"role": "user", "content": user_request}]},
+                config=invoke_config,
+            )
+            break
+        except Exception as e:
+            last_error = e
+            if "tool_use_failed" not in str(e) and "Failed to call a function" not in str(e):
+                return CopilotResult(success=False, cleaning_log=cleaning_log, error=str(e))
+    else:
+        return CopilotResult(
+            success=False, cleaning_log=cleaning_log,
+            error=f"The model repeatedly failed to format a tool call correctly. "
+                  f"Last error: {last_error}",
         )
-    except Exception as e:
-        return CopilotResult(success=False, cleaning_log=cleaning_log, error=str(e))
 
+    
     all_messages = result["messages"]
 
     last_human_idx = 0
