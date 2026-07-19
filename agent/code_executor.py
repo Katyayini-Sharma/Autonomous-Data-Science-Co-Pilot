@@ -68,14 +68,9 @@ def _build_safe_globals(df: pd.DataFrame, output_dir: str):
 
     def save_chart(fig=None, name=None):
         if fig is not None and hasattr(fig, "figure") and not hasattr(fig, "savefig"):
-            # Caller passed an Axes; every Axes carries a reference to its
-            # parent Figure via .figure.
             fig = fig.figure
         fig = fig or plt.gcf()
 
-        # Detect a figure with nothing actually plotted on it. This turns a
-        # silently-saved blank PNG into a real, catchable error the agent
-        # can self-heal from, instead of reporting false success.
         has_content = any(
             ax.lines or ax.patches or ax.collections or ax.images or ax.containers
             for ax in fig.get_axes()
@@ -86,6 +81,21 @@ def _build_safe_globals(df: pd.DataFrame, output_dir: str):
                 "Call a plotting function (e.g. ax.bar(...), ax.plot(...), "
                 "ax.hist(...)) on the figure or its axes before calling save_chart."
             )
+
+        # Safety net: rotate long/overlapping x-axis category labels
+        # automatically, regardless of whether the agent's code remembered
+        # to do this. Only applies to text-based tick labels (categories),
+        # never to numeric axes, so it never touches a line/scatter plot's
+        # numeric x-axis.
+        for ax in fig.get_axes():
+            xticklabels = ax.get_xticklabels()
+            if xticklabels:
+                label_texts = [t.get_text() for t in xticklabels]
+                is_categorical = any(not lbl.replace(".", "").replace("-", "").isdigit() for lbl in label_texts if lbl)
+                longest_label = max((len(lbl) for lbl in label_texts), default=0)
+                if is_categorical and (len(label_texts) > 5 or longest_label > 8):
+                    plt.setp(xticklabels, rotation=45, ha="right")
+        fig.tight_layout()
 
         chart_id = name or f"chart_{uuid.uuid4().hex[:8]}"
         path = os.path.join(output_dir, f"{chart_id}.png")
